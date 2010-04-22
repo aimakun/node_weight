@@ -1,3 +1,4 @@
+$ = jQuery;
 $(document).ready(function() {
   $('.node-weight-slide-content-scrollable .node-weight-page').show();
   $('.node-weight-slide-content-scrollable').each(function(i, item) {

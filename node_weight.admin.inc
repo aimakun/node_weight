@@ -1,5 +1,4 @@
 <?php
-
 /**
  * Settings form
  */
@@ -7,7 +6,7 @@ function node_weight_admin_settings_form(){
 	$form['node_weight_allow_type'] = array(
 		'#type' => 'checkboxes',
 		'#title' => t('Allow content type'),
-		'#options' => node_get_types('names'),
+		'#options' => node_type_get_names(),
 		'#default_value' => variable_get('node_weight_allow_type', array()),
 		'#description' => t('Select content type to use node weight manager.'),
 	);
@@ -25,7 +24,7 @@ function node_weight_admin_settings_form_submit($form, $form_state){
 	variable_set('node_weight_allow_type', $form_state['values']['node_weight_allow_type']);
 	foreach ($form_state['values']['node_weight_allow_type'] as $type => $value) {
 		if ($value) {
-			db_query("INSERT INTO {node_weight} SELECT n.nid, 0, CONCAT('node/', n.nid) FROM {node} AS n WHERE n.type = '%s' ON DUPLICATE KEY UPDATE node_weight.nid = node_weight.nid", $type);
+			db_query("INSERT INTO {node_weight} SELECT n.nid, 0, CONCAT('node/', n.nid) FROM {node} AS n WHERE n.type = ':type' ON DUPLICATE KEY UPDATE node_weight.nid = node_weight.nid", array(':type' => $type));
 		}
 	}
 }
@@ -39,6 +38,7 @@ function node_weight_admin_settings_form_submit($form, $form_state){
  */
 function node_weight_type_form() {
 	$type = variable_get('node_weight_allow_type', NULL);
+	$rows = array();
 	if ($type) {
 		foreach ($type as $key => $value) {
 			if ($value) {
@@ -46,9 +46,13 @@ function node_weight_type_form() {
 			}
 		}
 	}
-	if ($rows) {
+	if (count($rows) > 0) {
 		$header = array(t('Content Type'));
-		return theme('table', $header, $rows, array('id' => 'node-weight-type'));
+		return theme('table', array(
+		  'header' => $header, 
+		  'rows' => $rows, 
+		  'attributes' => array('id' => 'node-weight-type')
+		));
 	}
 	else {
 		return 'No content type to select, you can setting '. l('here', 'admin/settings/node_weight', array('query' => drupal_get_destination()));
@@ -65,7 +69,8 @@ function node_weight_type_form() {
  * @see theme_node_weight_overview_form()
  */
 function node_weight_overview_form(&$form_state, $type = NULL) {
-	drupal_set_title('Weight Manager for <em>'.$type.'</em>');
+  $node_type = arg(3);
+	drupal_set_title('Weight Manager for "'.$node_type.'"');
 	$allow_type = variable_get('node_weight_allow_type', NULL);
 	if ($allow_type) {
 		foreach ($allow_type as $allow => $value) {
@@ -73,15 +78,16 @@ function node_weight_overview_form(&$form_state, $type = NULL) {
 				$allow_types[] = $allow;
 			}
 		}
-		if (isset($allow_types) && in_array($type, $allow_types)) {
-			$result = db_query("SELECT n.nid, n.title, n.type, nw.weight FROM {node} AS n LEFT JOIN {node_weight} AS nw ON n.nid = nw.nid WHERE n.type = '%s' ORDER BY nw.weight", $type);
-			while ($node = db_fetch_array($result)) {
-				$nodes[$node['nid']] = $node;
+		if (isset($allow_types) && in_array($node_type, $allow_types)) {
+		  $nodes = array();
+			$result = db_query("SELECT n.nid, n.title, n.type, nw.weight FROM {node} AS n LEFT JOIN {node_weight} AS nw ON n.nid = nw.nid WHERE n.type = '$node_type' ORDER BY nw.weight");
+			foreach ($result as $node) {
+				$nodes[$node->nid] = $node;
 			}
 			$form['node_weight']['#tree'] = TRUE;
 			$form['create_new'] = array(
 			  '#type' => 'markup',
-			  '#value' => l('Create new '.$type, 'node/add/'.str_replace('_', '-', $type), array('query' => drupal_get_destination()))
+			  '#markup' => l('Create new '.$node_type, 'node/add/'.str_replace('_', '-', $node_type), array('query' => drupal_get_destination()))
 			);
 			if ($nodes) {
 				foreach ($nodes as $nid => $node) {
@@ -99,13 +105,13 @@ function node_weight_overview_form(&$form_state, $type = NULL) {
 			return $form;
 		}
 		else {
-			drupal_goto('node_weight');
+		  drupal_goto('node_weight');
 		}
-	}
-	else {
+  }
+  else {
 		$form['error'] = array(
 			'#type' => 'markup', 
-			'#value' => 'No content type to select, you can setting '. l('here', 'admin/settings/node_weight', array('query' => drupal_get_destination())),
+			'#markup' => 'No content type to select, you can setting '. l('here', 'admin/settings/node_weight', array('query' => drupal_get_destination())),
 		);
 		return $form;
 	}
@@ -122,27 +128,29 @@ function node_weight_overview_form(&$form_state, $type = NULL) {
 function _node_weight_overview_field($node) {
 	$form['nid'] = array(
 		'#type' => 'hidden',
-		'#value' => $node['nid'],
+		'#value' => $node->nid,
 	);
 	$form['title'] = array(
 		'#type' => 'markup',
-		'#value' => l($node['title'], 'node/'.$node['nid']),
+		'#markup' => l($node->title, 'node/'.$node->nid),
 	);
+	/*
 	$form['taxonomy'] = array(
 		'#type' => 'markup',
-		'#value' => implode(', ', array_keys((array)taxonomy_node_get_terms(node_load($node['nid']), 'name'))),
+		'#value' => implode(', ', array_keys((array)taxonomy_node_get_terms(node_load($node->nid), 'name'))),
 	);
+	*/
 	$form['weight'] = array(
 		'#type' => 'weight',
-		'#default_value' => $node['weight'],
+		'#default_value' => $node->weight,
 	);
 	$form['edit'] = array(
 		'#type' => 'markup',
-		'#value' => l('edit', 'node/'.$node['nid'].'/edit', array('query' => drupal_get_destination())),
+		'#markup' => l('edit', 'node/'.$node->nid.'/edit', array('query' => drupal_get_destination())),
 	);
 	$form['delete'] = array(
 		'#type' => 'markup',
-		'#value' => l('delete', 'node/'.$node['nid'].'/delete', array('query' => drupal_get_destination())),
+		'#markup' => l('delete', 'node/'.$node->nid.'/delete', array('query' => drupal_get_destination())),
 	);
 	return $form;
 }
@@ -159,6 +167,11 @@ function _node_weight_overview_field($node) {
 function node_weight_overview_form_submit($form, &$form_state) {
 	$nodes = $form_state['values']['node_weight'];
 	foreach($nodes as $node) {
-		db_query("UPDATE {node_weight} SET weight = %d WHERE nid = %d", $node['weight'], $node['nid']);
+	  db_update("node_weight")
+	    ->fields(array(
+	      'weight' => $node['weight']
+	    ))
+	    ->condition('nid',$node['nid'])
+	    ->execute();
 	}
 }

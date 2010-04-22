@@ -1,8 +1,9 @@
 ; $Id$
 name = Node weight tab
-description = Node weight slide tab
-core = 6.x
-version = 6.x-1.0
+description = "Node weight slide tab"
+core = 7.x
+version = 7.x-1.0
 package = Node weight
 
 dependencies[] = node_weight
+files[] = node_weight_tab.module

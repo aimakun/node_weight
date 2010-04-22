@@ -49,6 +49,8 @@ function node_weight_tab_weight_info() {
  */
 function node_weight_tab_weight_view($nodes, $type, $settings) {
   // Settings
+  $embed = false;
+  $tab_navigation_type = 'title';
   foreach ($settings as $name => $value) {
     $$name = $value;
   }
@@ -152,7 +154,7 @@ function node_weight_tab_weight_view($nodes, $type, $settings) {
   
   // Edit order link
   if (user_access('administer node weight')) {
-		$output .= '<div class="node-weight-edit-link">'. l(t('Change featured order...'), 'node_weight/'. $type) .'</div>';
+		$output .= '<div class="node-weight-edit-link">'. l(t('Change featured order...'), 'admin/content/node_weight/'. $type) .'</div>';
 	}
 	
 	// Javascript

@@ -1,3 +1,4 @@
+$ = jQuery;
 $(document).ready(function() {
   $('.node-weight-slide-content-cycle').each(function() {
     $(this).cycle({

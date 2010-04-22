@@ -1,0 +1,18 @@
+.overlay #overlay-element {
+  overflow: hidden;
+  width: 100%;
+  height: 100%;
+  /* Position overlay outside of viewport instead of setting display:none as
+   * Drupal.behaviors may expect overlay's content to be visible.
+   * @link http://drupal.org/node/690276
+   * @see Drupal.tableDrag.prototype.hideColumns
+   */
+  display: auto;
+  position: relative;
+  left: -200%;
+
+}
+.overlay-loaded #overlay-element {
+  /*display: auto;*.
+  left: 0;
+}

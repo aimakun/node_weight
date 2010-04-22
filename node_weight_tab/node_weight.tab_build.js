@@ -1,3 +1,4 @@
+$ = jQuery;
 $(document).ready(function() {
   $(".node-weight-navi-tab").idTabs();
   $(".node-weight-navi-tab a").click(function() {
