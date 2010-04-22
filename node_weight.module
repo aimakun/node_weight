@@ -338,15 +338,14 @@ function node_weight_block_view($delta = '') {
     );
 
     
-    if (isset($node->field_image[$node->language])) 
-      $node->node_weight['image_path'] = $node->field_image[$node->language][0]['uri'];
-    if (isset($node->field_thumb[$node->language])) 
-      $node->node_weight['thumb_path'] = $node->field_thumb[$node->language][0]['uri'];
-    if (isset($node->field_swf[$node->language])) 
-      $node->node_weight['swf_path'] = $node->field_swf[$node->language][0]['uri'];
-    
-    if (isset($node->field_embed[$node->language][0]['value'])) 
-      $node->node_weight['embed'] = $node->field_embed[$node->language][0]['value'];
+    if (isset($node->node_weight_image[$node->language])) 
+      $node->node_weight['image_path'] = $node->node_weight_image[$node->language][0]['uri'];
+    if (isset($node->node_weight_thumb[$node->language])) 
+      $node->node_weight['thumb_path'] = $node->node_weight_thumb[$node->language][0]['uri'];
+    if (isset($node->node_weight_swf[$node->language])) 
+      $node->node_weight['swf_path'] = $node->node_weight_swf[$node->language][0]['uri'];
+    if (isset($node->node_weight_embed[$node->language][0]['value'])) 
+      $node->node_weight['embed'] = $node->node_weight_embed[$node->language][0]['value'];
 
     $nodes[] = $node;
   }
@@ -427,7 +426,7 @@ function theme_node_weight_overview_form($variables) {
   $output = drupal_render($form['create_new']);
   $header = array(t('Title'), t('Taxonomy'), t('Weight'), t('Edit'), t('Delete'));
 
-  $output = drupal_render($form['override']);
+  $output .= drupal_render($form['override']);
   $output .= theme('table', array(
     'header' => $header,
     'rows' => $rows,

@@ -25,7 +25,65 @@ function node_weight_admin_settings_form_submit($form, $form_state){
 	foreach ($form_state['values']['node_weight_allow_type'] as $type => $value) {
 		if ($value) {
 			db_query("INSERT INTO {node_weight} SELECT n.nid, 0, CONCAT('node/', n.nid) FROM {node} AS n WHERE n.type = ':type' ON DUPLICATE KEY UPDATE node_weight.nid = node_weight.nid", array(':type' => $type));
-		}
+
+      /* Auto create field instances with Field API. */
+      // Load node type fields.
+      
+      $fields = field_info_instances('node', $value);
+
+      $auto_fields = array(
+        array(
+          'name' => 'node_weight_image',
+          'type' => 'image',
+          'label' => 'Display image',
+        ),
+        array(
+          'name' => 'node_weight_thumb',
+          'type' => 'image',
+          'label' => 'Thumbnail image',
+        ),
+        array(
+          'name' => 'node_weight_swf',
+          'type' => 'file',
+          'label' => 'Display Flash video',
+        ),
+        array(
+          'name' => 'node_weight_embed',
+          'type' => 'text_long',
+          'label' => 'Embed code',
+        ),
+      );
+
+      foreach ($auto_fields as $f) {
+        if (!isset($fields[$f['name']])) {
+          $global_field = field_info_field($f['name']);
+          if (empty($global_field)) {
+            // Create comment body field.
+            $field = array(
+              'field_name' => $f['name'],
+              'type' => $f['type'],
+            );
+            field_create_field($field);
+          }
+          
+          $instance = array(
+            'field_name' => $f['name'],
+            'entity_type' => 'node',
+            'object_type' => 'node',
+            'label' => t($f['label']),
+            'bundle' => $value,
+            'weight' => 99,
+            'display' => array(
+              'full' => array(
+                'label' => 'hidden',
+              ),
+            ),
+          );
+
+          field_create_instance($instance);
+        }
+      }
+    }
 	}
 }
 

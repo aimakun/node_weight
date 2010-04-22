@@ -40,4 +40,11 @@ function node_weight_uninstall() {
 	drupal_uninstall_schema('node_weight');
 	variable_del('node_weight');
 	variable_del('node_weight_allow_type');
+
+	// Remove fields
+	$instance = field_delete_field('node_weight_image');
+	$instance = field_delete_field('node_weight_thumb');
+	$instance = field_delete_field('node_weight_swf');
+	$instance = field_delete_field('node_weight_embed');
+
 }
