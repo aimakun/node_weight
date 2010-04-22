@@ -71,12 +71,13 @@ function node_weight_scrollable_weight_view($nodes, $type, $settings) {
     }
     elseif ($image_path) {
       // Make image
-      if ($preset_image) {
-        $image = theme('imagecache', $preset_image, $image_path, $node->title, $node->title);
-      }
-      else {
-        $image = theme('image', $image_path, $node->title, $node->title);
-      }
+      $image = theme_image(array(
+        'path'=>$image_path, 
+        'alt'=>$node->title, 
+        'title'=>$node->title,
+        'attributes'=>array(),
+        'getsize'=>TRUE
+      ));
       // Image as link
       if ($display_image_as_link) {
         $options = array('html' => TRUE);

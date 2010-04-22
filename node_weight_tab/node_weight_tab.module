@@ -14,21 +14,21 @@ function node_weight_tab_weight_info() {
       'bottom' => t('Bottom'),
     ),
   );
-  if (module_exists('imagecache')) {
-    $presets = array(
-      'numeric' => t('Numeric'),
-      'title' => t('Node title')
-    );
-    foreach (imagecache_presets() as $preset) {
-      $presets[$preset['presetname']] = 'Thumbnail: '. $preset['presetname'];
-    }
-    $form['tab_navigation_type'] = array(
-      '#type' => 'select',
-      '#title' => t('Navigation\'s type'),
-      '#default_value' => variable_get('tab_navigation_type', 'none'),
-      '#options' => $presets,
-    );
-  }
+  $presets = array(
+    'numeric' => t('Numeric'),
+    'title' => t('Node title')
+  );
+  
+  $presets['numeric'] = 'Thumbnail: Numeric';
+  $presets['title'] = 'Thumbnail: Title';
+  $presets['media'] = 'Thumbnail: Media';
+  
+  $form['tab_navigation_type'] = array(
+    '#type' => 'select',
+    '#title' => t('Navigation\'s type'),
+    '#default_value' => variable_get('tab_navigation_type', 'none'),
+    '#options' => $presets,
+  );
   $form['tab_navigation_opacity'] = array(
     '#type' => 'textfield',
     '#title' => t('Inactive opacity'),
@@ -54,7 +54,6 @@ function node_weight_tab_weight_view($nodes, $type, $settings) {
   foreach ($settings as $name => $value) {
     $$name = $value;
   }
-  
   // Generate items
   $items = array();
   $navigation = array();
@@ -71,12 +70,13 @@ function node_weight_tab_weight_view($nodes, $type, $settings) {
     }
     elseif ($image_path) {
       // Make image
-      if ($preset_image) {
-        $image = theme('imagecache', $preset_image, $image_path, $node->title, $node->title);
-      }
-      else {
-        $image = theme('image', $image_path, $node->title, $node->title);
-      }
+      $image = theme_image(array(
+        'path'=>$image_path, 
+        'alt'=>$node->title, 
+        'title'=>$node->title,
+        'attributes'=>array(),
+        'getsize'=>TRUE
+      ));
       // Image as link
       if ($display_image_as_link) {
         $options = array('html' => TRUE);
@@ -118,7 +118,20 @@ function node_weight_tab_weight_view($nodes, $type, $settings) {
         $navigation[] = '<li><a href="#tab-'. $node->nid .'">'. $node->title .'</a></li>';
       }
       else {
-        $thumbnail = theme('imagecache', $tab_navigation_type, $image_path, $node->title, $node->title);
+        //$thumbnail = theme('imagecache', $tab_navigation_type, $image_path, $node->title, $node->title);
+        if (!empty($thumb_path)) {
+          $thumbnail = theme_image(array(
+            'path'=>$thumb_path, 
+            'alt'=>$node->title, 
+            'title'=>$node->title,
+            'attributes'=>array(),
+            'getsize'=>TRUE
+          ));
+        }
+        else {
+          $thumbnail = $node->title;
+        }
+        
         $navigation[] = '<li><a href="#tab-'. $node->nid .'">'. $thumbnail .'</a></li>';
       }
     }

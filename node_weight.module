@@ -334,17 +334,20 @@ function node_weight_block_view($delta = '') {
       'image_path' => '',
       'thumb_path' => '',
       'swf_path' => '',
-      'embed_path' => ''
+      'embed' => ''
     );
-    if (isset($node->{'field_'. $node->type .'_image'}[0]['filepath'])) 
-      $node->node_weight['image_path'] = $node->{'field_'. $node->type .'_image'}[0]['filepath'];
-    if (isset($node->{'field_'. $node->type .'_thumb'}[0]['filepath'])) 
-      $node->node_weight['thumb_path'] = $node->{'field_'. $node->type .'_thumb'}[0]['filepath'];
-    if (isset($node->{'field_'. $node->type .'_swf'}[0]['filepath'])) 
-      $node->node_weight['swf_path'] = $node->{'field_'. $node->type .'_swf'}[0]['filepath'];
-    if (isset($node->{'field_'. $node->type .'_embed'}[0]['value'])) 
-      $node->node_weight['embed_path'] = $node->{'field_'. $node->type .'_embed'}[0]['value'];
+
     
+    if (isset($node->field_image[$node->language])) 
+      $node->node_weight['image_path'] = $node->field_image[$node->language][0]['uri'];
+    if (isset($node->field_thumb[$node->language])) 
+      $node->node_weight['thumb_path'] = $node->field_thumb[$node->language][0]['uri'];
+    if (isset($node->field_swf[$node->language])) 
+      $node->node_weight['swf_path'] = $node->field_swf[$node->language][0]['uri'];
+    
+    if (isset($node->field_embed[$node->language][0]['value'])) 
+      $node->node_weight['embed'] = $node->field_embed[$node->language][0]['value'];
+
     $nodes[] = $node;
   }
   
