@@ -164,11 +164,6 @@ function node_weight_tab_weight_view($nodes, $type, $settings) {
   
   // Wrap outest
   $output = '<div class="node-weight-slide node-weight-slide-tab">'. $output .'</div>';
-  
-  // Edit order link
-  if (user_access('administer node weight')) {
-		$output .= '<div class="node-weight-edit-link">'. l(t('Change featured order...'), 'admin/content/node_weight/'. $type) .'</div>';
-	}
 	
 	// Javascript
 	$tab_settings['node_weight']['tab'] = array(

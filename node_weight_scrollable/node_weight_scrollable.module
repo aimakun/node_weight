@@ -140,11 +140,6 @@ function node_weight_scrollable_weight_view($nodes, $type, $settings) {
   
   // Wrap outest
   $output = '<div class="node-weight-slide node-weight-slide-scrollable">'. $output .'</div>';
-  
-  // Edit order link
-  if (user_access('administer node weight')) {
-		$output .= '<div class="node-weight-edit-link">'. l(t('Change featured order...'), 'admin/content/node_weight/'. $type) .'</div>';
-	}
 	
 	// Javascript
 	$scrollable_settings['node_weight']['scrollable'] = array(

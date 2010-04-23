@@ -129,11 +129,6 @@ function node_weight_cycle_weight_view($nodes, $type, $settings) {
   
   // Wrap outest
   $output = '<div class="node-weight-slide node-weight-slide-cycle">'. $output .'</div>';
-  
-  // Edit order link
-  if (user_access('administer node weight')) {
-		$output .= '<div class="node-weight-edit-link">'. l(t('Change featured order...'), 'admin/content/node_weight/'. $type) .'</div>';
-	}
 	
 	// Javascript
 	$cycle_settings['node_weight']['cycle'] = array(

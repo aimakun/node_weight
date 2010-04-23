@@ -123,11 +123,10 @@ function node_weight_type_form() {
  *
  * @ingroup forms
  * @see _node_weight_overview_field()
- * @see node_weight_overview_form_submit()
  * @see theme_node_weight_overview_form()
  */
 function node_weight_overview_form(&$form_state, $type = NULL) {
-  $node_type = arg(3);
+  $node_type = arg(5);
 	drupal_set_title('Weight Manager for "'.$node_type.'"');
 	$allow_type = variable_get('node_weight_allow_type', NULL);
 	if ($allow_type) {
@@ -142,20 +141,26 @@ function node_weight_overview_form(&$form_state, $type = NULL) {
 			foreach ($result as $node) {
 				$nodes[$node->nid] = $node;
 			}
-			$form['node_weight']['#tree'] = TRUE;
-			$form['create_new'] = array(
+			
+			$form['node_weight'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Node order'),
+        '#tree' => TRUE,
+        '#collapsible' => TRUE,
+        '#collapsed' => FALSE,
+        '#weight' => -10,
+      );
+      
+			$form['node_weight']['create_new'] = array(
 			  '#type' => 'markup',
-			  '#markup' => l('Create new '.$node_type, 'node/add/'.str_replace('_', '-', $node_type), array('query' => drupal_get_destination()))
+			  '#markup' => '<ul class="action-links">' . "\n" . '<li>' . l('Create new '.$node_type, 'node/add/'.str_replace('_', '-', $node_type), array('query' => drupal_get_destination())) . "</li>\n</ul>\n",
 			);
 			if ($nodes) {
 				foreach ($nodes as $nid => $node) {
 					$form['node_weight'][$nid] = _node_weight_overview_field($node);
 				}
-				$form['buttons']['submit'] = array(
-					'#type' => 'submit',
-					'#value' => t('Save changes'),
-					'#disabled' => empty($nodes),
-				);
+				
+			  $form['node_weight']['#theme'] = 'node_weight_overview_form';
 			}
 			if (!isset($form)) {
 				drupal_goto('node_weight');
@@ -211,25 +216,4 @@ function _node_weight_overview_field($node) {
 		'#markup' => l('delete', 'node/'.$node->nid.'/delete', array('query' => drupal_get_destination())),
 	);
 	return $form;
-}
-
-
-/**
- * General submit handler for node_weight's overview form.
- *
- * Updates the weights of all nodes on the form.
- *
- * @ingroup formapi
- * @see node_weight_overview_form()
- */
-function node_weight_overview_form_submit($form, &$form_state) {
-	$nodes = $form_state['values']['node_weight'];
-	foreach($nodes as $node) {
-	  db_update("node_weight")
-	    ->fields(array(
-	      'weight' => $node['weight']
-	    ))
-	    ->condition('nid',$node['nid'])
-	    ->execute();
-	}
 }

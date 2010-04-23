@@ -1,3 +1,4 @@
+$ = jQuery;
 $(document).ready(function() {
   $('select#edit-display-style').change(function() {
     var val = this.value;

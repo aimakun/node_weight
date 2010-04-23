@@ -25,14 +25,6 @@ function node_weight_menu() {
 		'type' => MENU_NORMAL_ITEM,
 		'file' => 'node_weight.admin.inc',
 	);
-	$items['admin/content/node_weight/%'] = array(
-		'title' => t('Node Weight'),
-		'page callback' => 'drupal_get_form',
-	  'page arguments' => array('node_weight_overview_form', 3),
-		'access arguments' => array('administer node weight'),
-		'type' => MENU_NORMAL_ITEM,
-		'file' => 'node_weight.admin.inc',
-	);
 	$items['admin/settings/node_weight'] = array(
 		'title' => t('Node Weight'),
 		'description' => t('Configure Node Weight options.'),
@@ -160,6 +152,10 @@ function node_weight_block_info() {
 }
 
 function node_weight_block_configure($delta = '') {
+  // Load node_weight ordered table.
+  $form_state = array();
+  require_once('node_weight.admin.inc');
+  $form = node_weight_overview_form($form_state);
   $types = array();
   $display_list = array(0 => t('None'));
   foreach (module_implements('weight_info') as $name) {
@@ -199,6 +195,7 @@ function node_weight_block_configure($delta = '') {
     '#default_value' => variable_get('nw_number_of_item_'. $delta, 5),
     '#size' => 5,
   );
+  /* Should create own preset instead.
   if (module_exists('imagecache')) {
     $presets = array('none' => t('Do not use imagecacahe'));
     foreach (imagecache_presets() as $preset) {
@@ -212,6 +209,7 @@ function node_weight_block_configure($delta = '') {
       '#options' => $presets,
     );
   }
+  */
   $form['general_fs']['display_image_as_link'] = array(
     '#type' => 'checkbox',
     '#title' => t('Display image as link'),
@@ -253,9 +251,11 @@ function node_weight_block_save($delta = '', $edit = array()) {
   variable_set('nw_display_body_'. $delta, $edit['display_body']);
   variable_set('nw_footer_'. $delta, $edit['footer']);
   variable_set('nw_display_image_as_link_'. $delta, $edit['display_image_as_link']);
+  /*
   if (module_exists('imagecache')) {
     variable_set('nw_preset_image_'. $delta, $edit['preset_image']);
   }
+  */
   
   // Save settings from implements module
   foreach (module_implements('weight_info') as $name) {
@@ -271,6 +271,17 @@ function node_weight_block_save($delta = '', $edit = array()) {
       }
     }
   }
+
+  // Save node_weight arrange nodes.
+  $nodes = $edit['node_weight'];
+	foreach($nodes as $node) {
+	  db_update("node_weight")
+	    ->fields(array(
+	      'weight' => $node['weight']
+	    ))
+	    ->condition('nid',$node['nid'])
+	    ->execute();
+	}
 }
 
 function node_weight_block_view($delta = '') {
@@ -282,12 +293,14 @@ function node_weight_block_view($delta = '') {
     'footer' => variable_get('nw_footer_'. $delta, ''),
     'display_image_as_link' => variable_get('nw_display_image_as_link_'. $delta, TRUE),
   );
+  /*
   if (module_exists('imagecache')) {
     $preset_image = variable_get('nw_preset_image_'. $delta, 'none');
     if ($preset_image != 'none' && $preset_image != '') {
       $settings['preset_image'] = $preset_image;
     }
   }
+  */
   
   $limit = $settings['number_of_item'] > 0 ? 'LIMIT 0, '. $settings['number_of_item'] : '';
   
@@ -388,22 +401,22 @@ function theme_node_weight_overview_form($variables) {
 
   $rows = array();
   //$rows[] = array('<pre>' . print_r($form,1) . '</pre>', '', '', 'test', '');
-  foreach (element_children($form['node_weight']) as $key) {
+  foreach (element_children($form) as $key) {
+    if (!is_numeric($key)) continue;
     $row = array();
     // Render the hidden 'node_weight id' field and the title of the node into the
     // same column of the row.
-    $row[] = drupal_render($form['node_weight'][$key]['nid']) . drupal_render($form['node_weight'][$key]['title']);
-    $row[] = drupal_render($form['node_weight'][$key]['nid']) . drupal_render($form['node_weight'][$key]['taxonomy']);
+    $row[] = drupal_render($form[$key]['nid']) . drupal_render($form[$key]['title']);
     
     // Add an identifying CSS class to our weight field, as it's the one
     // the tabledrag.js will be controlling. This can be anything we want it to
     // be, we'll just tell the tabledrag.js library what it should look for.
-    $form['node_weight'][$key]['weight']['#attributes']['class'] = array('node-weight-weight');
-    $row[] = drupal_render($form['node_weight'][$key]['weight']);
+    $form[$key]['weight']['#attributes']['class'] = array('node-weight-weight');
+    $row[] = drupal_render($form[$key]['weight']);
 
     // Render the edit and delete links
-    $row[] = drupal_render($form['node_weight'][$key]['edit']);
-	  $row[] = drupal_render($form['node_weight'][$key]['delete']);
+    $row[] = drupal_render($form[$key]['edit']);
+	  $row[] = drupal_render($form[$key]['delete']);
 
     // Add the new row to our collection of rows, and give it the 'draggable'
     // class, indicating that it should be... well, draggable.
@@ -424,15 +437,18 @@ function theme_node_weight_overview_form($variables) {
   // on the form itself after we're done, so hidden security fields and other
   // elements (like buttons) will appear properly at the bottom of the form.
   $output = drupal_render($form['create_new']);
-  $header = array(t('Title'), t('Taxonomy'), t('Weight'), t('Edit'), t('Delete'));
-
-  $output .= drupal_render($form['override']);
+  
+  $header = array(t('Title'), t('Weight'), t('Edit'), t('Delete'));
   $output .= theme('table', array(
     'header' => $header,
     'rows' => $rows,
     'attributes' => array('id' => 'node-weight-overview')
   ));
-  $output .= drupal_render_children($form);
+
+  drupal_add_js(drupal_get_path('module', 'node_weight') .'/override_block.js',
+    array('weight' => 100)
+  );
+
 
   // Now that we've built our output, tell Drupal to add the tabledrag.js library.
   // We'll pass in the ID of the table, the behavior we want it to use, and the

@@ -6,5 +6,4 @@ version = 7.x-2.0
 package = Node weight
 files[] = node_weight.module
 files[] = node_weight.admin.inc
-files[] = node_weight.field.inc
 files[] = node_weight.install
