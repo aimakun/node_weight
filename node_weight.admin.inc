@@ -37,6 +37,7 @@ function node_weight_admin_settings_form_submit($form, $form_state){
           'type' => 'image',
           'label' => 'Display image',
         ),
+        /* Temporary disabled
         array(
           'name' => 'node_weight_thumb',
           'type' => 'image',
@@ -52,6 +53,7 @@ function node_weight_admin_settings_form_submit($form, $form_state){
           'type' => 'text_long',
           'label' => 'Embed code',
         ),
+        */
       );
 
       foreach ($auto_fields as $f) {
